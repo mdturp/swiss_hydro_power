@@ -2,48 +2,49 @@
 import MainHeader from '@/components/MainHeader.vue'
 import MainTimeline from '@/components/MainTimeline.vue'
 import MainMessage from '@/components/MainMessage.vue'
-
+import MainMap from '@/components/MainMap.vue'
+import { useMessageStore } from '@/stores/messages'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+
 import { onMounted, ref } from 'vue'
 
-// const timeLineFixed = ref(false)
+const messagesStore = useMessageStore()
 
-// onMounted(() => {
-//   gsap.registerPlugin(ScrollTrigger)
+onMounted(() => {
+  gsap.registerPlugin(ScrollTrigger)
 
-//   ScrollTrigger.create({
-//     trigger: '#MyContainer',
-//     start: 'top 200px',
-//     end: 'bottom 250px',
-//     endTrigger: '#timeLine',
-//     markers: { startColor: 'black', endColor: 'black' },
-//     scrub: true,
-//     onEnter: () => logRed('onEnter'),
-//     onLeave: () => fixLine('onLeave'),
-//     onEnterBack: () => fixLine('onLeave'),
-//     onLeaveBack: () => logRed('onLeaveBack'),
-//     onRefresh: () => logRed('onRefresh')
-//     //   onUpdate: (self) => rollCircleRoll(self.progress.toFixed(2))
-//   })
-// })
+  ScrollTrigger.create({
+    trigger: '#message-1',
+    start: 'top 250px',
+    end: 'bottom 350px',
+    markers: { startColor: 'black', endColor: 'black' },
+    scrub: true,
+    onEnter: () => transform('onEnter'),
+    onLeaveBack: () => transform('onLeaveBack')
+    //   onUpdate: (self) => rollCircleRoll(self.progress.toFixed(2))
+  })
+})
 
-function logRed(m) {
-  console.log(m)
-}
-
-function fixLine(m) {
-    console.log(m)
-    timeLineFixed.value = !timeLineFixed.value
-
+function transform(m) {
+  if (m === 'onEnter') {
+    messagesStore.selectedMessage = 1
+  } else if (m === 'onLeaveBack') {
+    messagesStore.selectedMessage = 0
+  }
 }
 </script>
 
 <template>
   <div id="parentContainer" class="relative font-serif mx-auto max-w-2xl">
     <MainHeader />
-    <MainTimeline/>
-    <MainMessage />
-    <MainMessage />
+    <MainTimeline class="z-30" />
+    <MainMap class="sticky z-10 top-20" />
+    <MainMessage
+      class="relative z-20"
+      v-for="m in messagesStore.messages"
+      :message="m"
+      :key="m.id"
+    />
   </div>
 </template>
