@@ -36,11 +36,12 @@ async function draw_switzerland() {
     })
 
     // Create a projection.
-    var startProjection = d3.geoMercator().scale(6000).translate([-600, 5800])
+    var startProjection = d3.geoMercator().scale(5500).translate([-500, 5400])
     // var endProjection = d3.geoMercator().scale(9900).translate([-1300, 9400])
 
     // Create a path generator.
     var path = d3.geoPath().projection(startProjection)
+    var imgURL = 'https://raw.githubusercontent.com/mdturp/solar_roof_detection/main/test1.png'
 
     // Create a svg element with black borders.
     var svg = d3
@@ -51,8 +52,21 @@ async function draw_switzerland() {
       .attr('height', 600)
     //   .style('border', '1px solid black')
 
-    // Draw the path
-    svg
+    var imageGroup = svg.append('g')
+
+    // Append the image to the image group
+    imageGroup
+      .append('image')
+      .attr('xlink:href', imgURL)
+      .attr('width', 600)
+      .attr('height', 600)
+
+
+    // Create a group for the paths
+    var pathGroup = svg.append('g')
+
+    // Draw the paths in the path group
+    pathGroup
       .selectAll('path')
       .data(fixed)
       .enter()
@@ -60,6 +74,29 @@ async function draw_switzerland() {
       .attr('d', path)
       .attr('fill', '#ECD8D8')
       .style('stroke', '#998D8D')
+      .attr('opacity', 0.3)
+
+    // var svg = d3
+    //   .select('#mapContainer')
+    //   .append('svg')
+    //   .attr('id', 'map')
+    //   .attr('width', 600)
+    //   .attr('height', 600)
+    //   .append("image")
+    //   .attr("xlink:href", imgURL)
+    //   .attr('width', 600)
+    //   .attr('height', 600)
+    //   .style('border', '1px solid black')
+
+    // // Draw the path
+    // svg
+    //   .selectAll('path')
+    //   .data(fixed)
+    //   .enter()
+    //   .append('path')
+    //   .attr('d', path)
+    //   .attr('fill', '#ECD8D8')
+    //   .style('stroke', '#998D8D')
     //   .on('click', clicked)
 
     // function clicked(event, d) {
@@ -75,37 +112,28 @@ async function draw_switzerland() {
 
 // Select svg element and add zoom event on click.
 
-let zoom = d3.zoom().on('zoom', handleZoom);
+let zoom = d3.zoom().on('zoom', handleZoom)
 
 function handleZoom(e) {
-	d3.select('svg')
-		.attr('transform', e.transform);
+  d3.select('svg').attr('transform', e.transform)
 }
 
 function translateMap() {
   var svg = d3.selectAll('#map')
-  svg.transition()
-     .duration(750)
-     .ease(d3.easeSinIn)
-     .call(zoom.transform,
-        d3.zoomIdentity
-          .translate(-50, 100)
-          .scale(3.0)
-          .translate(-50, 50));
-
+  svg
+    .transition()
+    .duration(750)
+    .ease(d3.easeSinIn)
+    .call(zoom.transform, d3.zoomIdentity.translate(-50, 100).scale(3.0).translate(-50, 50))
 }
 
 function resetMap() {
   var svg = d3.selectAll('#map')
-  svg.transition()
-     .duration(750)
-     .ease(d3.easeSinIn)
-     .call(zoom.transform,
-     d3.zoomIdentity
-       .translate(0, 0)
-       .scale(1.0)
-     )
-     ;
+  svg
+    .transition()
+    .duration(750)
+    .ease(d3.easeSinIn)
+    .call(zoom.transform, d3.zoomIdentity.translate(0, 0).scale(1.0))
 }
 
 onMounted(async () => {
