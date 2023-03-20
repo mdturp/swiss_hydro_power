@@ -36,7 +36,7 @@ function transform(m) {
 </script>
 
 <template>
-  <div id="parentContainer" class="relative font-serif mx-auto max-w-2xl">
+  <div id="parentContainer" class="relative font-serif mx-auto max-w-lg lg:max-w-3xl xl:max-w-4xl">
     <MainHeader />
     <MainTimeline class="z-30" />
     <MainMap class="sticky z-10 top-20" />

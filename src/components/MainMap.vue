@@ -22,56 +22,46 @@ watch(selectedMessage, (newSelectedMessage, oldSelectedMessage) => {
     resetMap()
   }
 })
+var switzerland_raster_url = 'https://github.com/mdturp/qgis/raw/main/switzerland3.png'
+var switzerland_cantons_url = 'https://raw.githubusercontent.com/mdturp/qgis/main/cantons3.geojson'
+var switzerland_hydro_url = 'https://raw.githubusercontent.com/mdturp/qgis/main/HydroPowerData.csv'
+
+const maxsize = 20
+const topHydroCount = 100
 
 async function draw_switzerland() {
-  //   var switzerland_url =
-  //     'https://gist.githubusercontent.com/mdturp/1f18119dbf08c2abe2592ef67df153da/raw/93dd0939115b7eb97b4c0ff1daec892bdd65fb5e/switzerland_and_cantons.topojson'
-  // var switzerland_url = 'https://gist.githubusercontent.com/mdturp/5c24a29c7bdd3b8952ca12077d09db7a/raw/bfb63abb1c525eff02f6cabbf9d1670e225a4aeb/landesgebiet.topojson';
-  // Use the topojson url to create a map using d3.
-  var switzerland_url =
-    'https://gist.githubusercontent.com/mdturp/022135d5cb1647d6f9b26943f6b20f15/raw/d61234c441b71fff755f8f5763d369b4c845e958/borders.geojson'
-  await d3.json(switzerland_url).then(function (data) {
-    // var switzerland = topojson.feature(data, data.objects.object_name)
+  var hydroData = await d3.csv(switzerland_hydro_url)
+  var maxProduction = d3.max(hydroData, function (d) {
+    return +d.production
+  })
 
-    var fixed = data.features.map(function (f) {
-      return turf.rewind(f, { reverse: true })
-    })
-    // var fixed = data;
+  await d3.json(switzerland_cantons_url).then(function (data) {
+    const w_orig = 2525
+    const h_orig = 1619
 
-    // Create a projection.
-    var startProjection = d3.geoMercator().translate([0, 0]).scale(1)
-    // .scale(5500).translate([-500, 5400])
-    // var endProjection = d3.geoMercator().scale(9900).translate([-1300, 9400])
+    const w = 900
+    const h = h_orig * (w / w_orig)
 
-    // Create a path generator.
-    var path = d3.geoPath().projection(startProjection)
-    var w = 1000 / 2
-    var h = 1000 / 2
-
-    const b = path.bounds(data)
-    console.log(b)
-    // scale
-    const s = 1 / Math.max((b[1][0] - b[0][0]) / w, (b[1][1] - b[0][1]) / h)
-
-    // transform
-    const t = [(w - s * (b[1][0] + b[0][0])) / 2, (h - s * (b[1][1] + b[0][1])) / 2]
-
-    console.log(s, t)
-
-    var imgURL =
-      'https://raw.githubusercontent.com/mdturp/solar_roof_detection/main/clipped_hillshade.png'
-
-    // Create a svg element with black borders.
     var svg = d3
       .select('#mapContainer')
       .append('svg')
       .attr('id', 'map')
+      .attr('preserveAspectRatio', 'xMinYMin meet')
       .attr('width', w)
       .attr('height', h)
-      .style('border', '1px solid black')
-    startProjection.scale(s).translate(t)
+      .classed('svg-content', true)
 
-    var imageGroup = svg.append('g')
+    const projection = d3.geoMercator().translate([0, 0]).scale(1)
+    const path = d3.geoPath().projection(projection)
+
+    const b = path.bounds(data)
+
+    const s = 0.9 / Math.min((b[1][0] - b[0][0]) / w, (b[1][1] - b[0][1]) / h)
+
+    // transform
+    const t = [(w - s * (b[1][0] + b[0][0])) / 2, (h - s * (b[1][1] + b[0][1])) / 2]
+
+    projection.scale(s).translate(t)
 
     const raster_width = (b[1][0] - b[0][0]) * s
     const raster_height = (b[1][1] - b[0][1]) * s
@@ -79,60 +69,42 @@ async function draw_switzerland() {
     const rtranslate_x = (w - raster_width) / 2
     const rtranslate_y = (h - raster_height) / 2
 
-    // Append the image to the image group
-    imageGroup
+    svg
       .append('image')
-      .attr('xlink:href', imgURL)
+      .attr('id', 'Raster')
+      .attr('xlink:href', switzerland_raster_url)
       .attr('width', raster_width)
       .attr('height', raster_height)
+      .attr('class', 'svg-content')
       .attr('transform', 'translate(' + rtranslate_x + ', ' + rtranslate_y + ')')
 
-    // Create a group for the paths
-    var pathGroup = svg.append('g')
-
-    // Draw the paths in the path group
-    pathGroup
+    svg
       .selectAll('path')
-      .data(fixed)
+      .data(data.features)
       .enter()
       .append('path')
+      .attr('fill', 'none')
+
+      .attr('stroke', '#434141')
+      .attr('stroke-width', 0.1)
       .attr('d', path)
-      .attr('fill', '#ECD8D8')
-      .style('stroke', '#998D8D')
-      .style('')
-      .attr('opacity', 0.3)
 
-    // var svg = d3
-    //   .select('#mapContainer')
-    //   .append('svg')
-    //   .attr('id', 'map')
-    //   .attr('width', 600)
-    //   .attr('height', 600)
-    //   .append("image")
-    //   .attr("xlink:href", imgURL)
-    //   .attr('width', 600)
-    //   .attr('height', 600)
-    //   .style('border', '1px solid black')
-
-    // // Draw the path
-    // svg
-    //   .selectAll('path')
-    //   .data(fixed)
-    //   .enter()
-    //   .append('path')
-    //   .attr('d', path)
-    //   .attr('fill', '#ECD8D8')
-    //   .style('stroke', '#998D8D')
-    //   .on('click', clicked)
-
-    // function clicked(event, d) {
-    //   const [[x0, y0], [x1, y1]] = path.bounds(d)
-    //   event.stopPropagation()
-    //   d3.select(this).transition().style('fill', 'red')
-    //   svg.transition().duration(750).attr(
-    //     'transform',
-    //     `translate(${svg.attr('width') / 2},${svg.attr('height') / 2})`)
-    // }
+    svg
+      .selectAll('circle')
+      .data(hydroData.slice(0, topHydroCount))
+      .enter()
+      .append('circle')
+      .attr('fill', '#C69696')
+      .attr('opacity', 0.6)
+      .attr('stroke', '#970D0D')
+      .attr('cx', function (d) {
+        console.log(d.x, d.y)
+        return projection([d.x, d.y])[0]
+      })
+      .attr('cy', function (d) {
+        return projection([d.x, d.y])[1]
+      })
+      .attr('r', function (d) {return maxsize*(d.production/maxProduction)})
   })
 }
 
@@ -162,7 +134,22 @@ function resetMap() {
     .call(zoom.transform, d3.zoomIdentity.translate(0, 0).scale(1.0))
 }
 
+const loadImage = (path) => {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    // img.crossOrigin = 'Anonymous' // to avoid CORS if used with Canvas
+    img.src = path
+    img.onload = () => {
+      resolve(img)
+    }
+    img.onerror = (e) => {
+      reject(e)
+    }
+  })
+}
+
 onMounted(async () => {
+  await loadImage(switzerland_raster_url)
   await draw_switzerland()
 })
 </script>
@@ -170,3 +157,16 @@ onMounted(async () => {
 <template>
   <div class="overflow-visible" id="mapContainer"></div>
 </template>
+
+<style scoped>
+.continent {
+  fill: #ecf3f4;
+  stroke: #434141;
+  stroke-width: 0.01;
+  border-radius: 25px;
+}
+.svg-content {
+  background-color: #ecf3f4;
+}
+
+</style>
