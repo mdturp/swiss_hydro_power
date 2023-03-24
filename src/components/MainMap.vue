@@ -21,13 +21,17 @@ watch(selectedMessage, (newSelectedMessage, oldSelectedMessage) => {
   if (newSelectedMessage === 0) {
     resetMap()
   }
+  if (newSelectedMessage === 4) {
+    reorderToBarChart()
+  }
 })
 var switzerland_raster_url = 'https://github.com/mdturp/qgis/raw/main/switzerland3.png'
 var switzerland_cantons_url = 'https://raw.githubusercontent.com/mdturp/qgis/main/cantons3.geojson'
 var switzerland_hydro_url = 'https://raw.githubusercontent.com/mdturp/qgis/main/HydroPowerData.csv'
 
-const maxsize = 20
+const maxsize = 30
 const topHydroCount = 100
+const maxBarWidth = 400
 
 async function draw_switzerland() {
   var hydroData = await d3.csv(switzerland_hydro_url)
@@ -79,6 +83,8 @@ async function draw_switzerland() {
       .attr('transform', 'translate(' + rtranslate_x + ', ' + rtranslate_y + ')')
 
     svg
+      .append('g')
+      .attr('id', 'border')
       .selectAll('path')
       .data(data.features)
       .enter()
@@ -98,13 +104,17 @@ async function draw_switzerland() {
       .attr('opacity', 0.6)
       .attr('stroke', '#970D0D')
       .attr('cx', function (d) {
-        console.log(d.x, d.y)
         return projection([d.x, d.y])[0]
       })
       .attr('cy', function (d) {
         return projection([d.x, d.y])[1]
       })
-      .attr('r', function (d) {return maxsize*(d.production/maxProduction)})
+      .attr('r', 0)
+      .transition()
+      .duration(1000)
+      .attr('r', function (d) {
+        return (d.production / maxProduction) * maxsize
+      })
   })
 }
 
@@ -125,6 +135,82 @@ function translateMap() {
     .call(zoom.transform, d3.zoomIdentity.translate(-50, 100).scale(3.0).translate(-50, 50))
 }
 
+async function reorderToBarChart() {
+  fadeOutBackground()
+  fadeOutBorder()
+  moveAndDrawBarChart()
+}
+
+async function fadeOutBackground() {
+  var svg = d3.selectAll('#Raster')
+  svg.transition().duration(1000).style('opacity', 0.0)
+}
+
+async function fadeOutBorder() {
+  var svg = d3.selectAll('#border')
+  svg.transition().duration(1000).style('opacity', 0.0)
+}
+
+async function fadeInBackground() {
+  var svg = d3.selectAll('#Raster')
+  svg.transition().duration(1000).style('opacity', 1.0)
+}
+
+async function fadeInBorder() {
+  var svg = d3.selectAll('#border')
+  svg.transition().duration(1000).style('opacity', 1.0)
+}
+
+function moveAndDrawBarChart() {
+  var circles = d3.selectAll('circle').data()
+
+  var maxProduction = d3.max(circles, function (d) {
+    return +parseFloat(d.production)
+  })
+
+  // Sort the circles by size (radius)
+  circles.sort(function (a, b) {
+    return d3.descending(parseFloat(a.production), parseFloat(b.production))
+  })
+
+  var barHeight = 15
+  var barPadding = 5
+  var bars = d3
+    .select('svg')
+    .selectAll('rect')
+    .data(circles)
+    .enter()
+    .append('rect')
+    .attr('y', function (d, i) {
+      return i * (barHeight + barPadding) + 100
+    })
+    .attr('height', barHeight)
+    .style('fill', '#C69696')
+    .style('fill-opacity', 0)
+    .attr('x', 0)
+    .attr('width', 0)
+
+  d3.selectAll('circle')
+    .transition()
+    .duration(1000)
+    .attr('cy', function (d, i) {
+      return i * (barHeight + barPadding) + barHeight / 2
+    })
+    .attr('cx', function (d) {
+      return 10
+    })
+    .style('opacity', 0)
+    .end()
+  .then(function() {
+    bars.transition()
+      .duration(500)
+      .attr('width', function(d) {
+        return parseFloat(d.production) / maxProduction * maxBarWidth;
+      })
+      .style('fill-opacity', 1);
+  });
+}
+
 function resetMap() {
   var svg = d3.selectAll('#map')
   svg
@@ -132,6 +218,9 @@ function resetMap() {
     .duration(750)
     .ease(d3.easeSinIn)
     .call(zoom.transform, d3.zoomIdentity.translate(0, 0).scale(1.0))
+
+  fadeInBackground()
+  fadeInBorder()
 }
 
 const loadImage = (path) => {
@@ -168,5 +257,4 @@ onMounted(async () => {
 .svg-content {
   background-color: #ecf3f4;
 }
-
 </style>

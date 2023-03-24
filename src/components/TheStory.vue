@@ -20,17 +20,38 @@ onMounted(() => {
     end: 'bottom 350px',
     markers: { startColor: 'black', endColor: 'black' },
     scrub: true,
-    onEnter: () => transform('onEnter'),
-    onLeaveBack: () => transform('onLeaveBack')
+    onEnter: () => transform('onEnter', 1),
+    onLeaveBack: () => transform('onLeaveBack', 0)
+    //   onUpdate: (self) => rollCircleRoll(self.progress.toFixed(2))
+  })
+  ScrollTrigger.create({
+    trigger: '#message-3',
+    start: 'top 250px',
+    end: 'bottom 350px',
+    markers: { startColor: 'black', endColor: 'black' },
+    scrub: true,
+    onEnter: () => transform('onEnter', 0),
+    onLeaveBack: () => transform('onLeaveBack', 1)
+    //   onUpdate: (self) => rollCircleRoll(self.progress.toFixed(2))
+  })
+
+  ScrollTrigger.create({
+    trigger: '#message-4',
+    start: 'top 250px',
+    end: 'bottom 350px',
+    markers: { startColor: 'black', endColor: 'black' },
+    scrub: true,
+    onEnter: () => transform('onEnter', 4),
+    onLeaveBack: () => transform('onLeaveBack', 0)
     //   onUpdate: (self) => rollCircleRoll(self.progress.toFixed(2))
   })
 })
 
-function transform(m) {
+function transform(m, message) {
   if (m === 'onEnter') {
-    messagesStore.selectedMessage = 1
+    messagesStore.selectedMessage = message
   } else if (m === 'onLeaveBack') {
-    messagesStore.selectedMessage = 0
+    messagesStore.selectedMessage = message
   }
 }
 </script>

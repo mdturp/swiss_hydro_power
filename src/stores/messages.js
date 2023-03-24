@@ -26,6 +26,7 @@ export const useMessageStore = defineStore('message', () => {
     Hotel St. Moritz des Hoteliers Johannes Badrutt 
     in Betrieb genommen.`,
     'id': 3 },
+    {'text':'', 'id': 4 },
   ])
 
   const selectedMessage = ref(0)
