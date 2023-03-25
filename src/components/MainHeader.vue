@@ -9,8 +9,8 @@
       <span> March 13, 2023 </span>
     </p>
     <p class="text-gray-700 text-xl mt-2.5 mb-5">
-      Switzerland a country with a long history of using hydroelectric power. Has to define how to
-      use and expand its hydroelectric power in the future.
+      The flow of progress: How the Swiss transformed their country to make use of
+      water to produce electricity.
     </p>
   </header>
 </template>

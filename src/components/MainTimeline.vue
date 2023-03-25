@@ -52,7 +52,7 @@ import { computed, onMounted, ref, nextTick } from 'vue'
 
 <style scoped>
 .timeLine {
-  position: sticky;
+  /* position: sticky; */
   top: 0px;
   height: 80px;
   background: white;

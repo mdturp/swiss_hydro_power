@@ -15,13 +15,14 @@ watch(selectedMessage, (newSelectedMessage, oldSelectedMessage) => {
   console.log('newMessages', newSelectedMessage)
   console.log('oldMessages', oldSelectedMessage)
 
-  if (newSelectedMessage === 1) {
-    translateMap()
-  }
   if (newSelectedMessage === 0) {
-    resetMap()
+    resetStMoritz()
+  } else if (newSelectedMessage === 1) {
+    stMoritz()
+  } else if (newSelectedMessage === 2) {
+    cities()
   }
-  if (newSelectedMessage === 4) {
+  else if (newSelectedMessage === 4) {
     reorderToBarChart()
   }
 })
@@ -29,8 +30,12 @@ var switzerland_raster_url = 'https://github.com/mdturp/qgis/raw/main/switzerlan
 var switzerland_cantons_url = 'https://raw.githubusercontent.com/mdturp/qgis/main/cantons3.geojson'
 var switzerland_hydro_url = 'https://raw.githubusercontent.com/mdturp/qgis/main/HydroPowerData.csv'
 
-const maxsize = 30
-const topHydroCount = 100
+var stMoritzCoordinates = [9.8355, 46.4908]
+var genevaCoordinates = [6.13732, 46.20467]
+var zurichCoordinates = [8.53301, 47.38702]
+
+const maxsize = 50
+const topHydroCount = 1000
 const maxBarWidth = 400
 
 async function draw_switzerland() {
@@ -100,6 +105,7 @@ async function draw_switzerland() {
       .data(hydroData.slice(0, topHydroCount))
       .enter()
       .append('circle')
+      .attr('class', 'hydroCircle')
       .attr('fill', '#C69696')
       .attr('opacity', 0.6)
       .attr('stroke', '#970D0D')
@@ -115,6 +121,36 @@ async function draw_switzerland() {
       .attr('r', function (d) {
         return (d.production / maxProduction) * maxsize
       })
+
+    svg
+      .append('circle')
+      .attr('fill', '#C69696')
+      .attr('id', 'stMoritz')
+      .attr('opacity', 0.0)
+      .attr('stroke', '#970D0D')
+      .attr('cx', projection(stMoritzCoordinates)[0])
+      .attr('cy', projection(stMoritzCoordinates)[1])
+      .attr('r', 0)
+
+    svg
+      .append('circle')
+      .attr('fill', '#C69696')
+      .attr('id', 'geneva')
+      .attr('opacity', 0.0)
+      .attr('stroke', '#970D0D')
+      .attr('cx', projection(genevaCoordinates)[0])
+      .attr('cy', projection(genevaCoordinates)[1])
+      .attr('r', 0)
+
+    svg
+      .append('circle')
+      .attr('fill', '#C69696')
+      .attr('id', 'zurich')
+      .attr('opacity', 0.0)
+      .attr('stroke', '#970D0D')
+      .attr('cx', projection(zurichCoordinates)[0])
+      .attr('cy', projection(zurichCoordinates)[1])
+      .attr('r', 0)
   })
 }
 
@@ -124,6 +160,51 @@ let zoom = d3.zoom().on('zoom', handleZoom)
 
 function handleZoom(e) {
   d3.select('svg').attr('transform', e.transform)
+}
+
+function stMoritz() {
+  d3.selectAll('circle')
+    .transition()
+    .duration(1000)
+    .style('opacity', 0)
+    .end()
+    .then(() => {
+      var svg = d3.selectAll('#map')
+      svg
+        .transition()
+        .duration(750)
+        .ease(d3.easeSinIn)
+        .call(zoom.transform, d3.zoomIdentity.translate(-800, -600).scale(4.0).translate(-50, 50))
+      var svg = d3.selectAll('#stMoritz')
+      svg.transition().duration(1000).style('opacity', 0.6).attr('r', 10)
+    })
+}
+
+function resetStMoritz() {
+  var svg = d3.selectAll('#stMoritz')
+  svg.transition().duration(1000).style('opacity', 0.0).attr('r', 0)
+
+  resetMap()
+  // reset hydro circles
+  d3.selectAll('.hydroCircle').transition().duration(1000).style('opacity', 0.6)
+}
+
+function cities() {
+  var svg = d3.selectAll('#stMoritz')
+  svg.transition().duration(1000).style('opacity', 0.0).attr('r', 0)
+  resetMap()
+  var g = d3.selectAll('#geneva')
+  g.transition().duration(500).style('opacity', 0.6).attr('r', 20)
+  var z = d3.selectAll('#zurich')
+  z.transition().duration(500).style('opacity', 0.6).attr('r', 20)
+}
+
+function resetCities() {
+    var svg = d3.selectAll('#geneva')
+    svg.transition().duration(1000).style('opacity', 0.0).attr('r', 0)
+    var svg = d3.selectAll('#zurich')
+    svg.transition().duration(1000).style('opacity', 0.0).attr('r', 0)
+    stMoritz()
 }
 
 function translateMap() {
@@ -172,9 +253,15 @@ function moveAndDrawBarChart() {
   circles.sort(function (a, b) {
     return d3.descending(parseFloat(a.production), parseFloat(b.production))
   })
+  var other_production = 0
+  for (var i = 10; i < circles.length; i++) {
+    other_production += circles[i].production
+  }
+  circles = circles.slice(0, 10)
+  circles.push({ name: 'Other', production: other_production })
 
   var barHeight = 15
-  var barPadding = 5
+  var barPadding = 15
   var bars = d3
     .select('svg')
     .selectAll('rect')
@@ -186,29 +273,51 @@ function moveAndDrawBarChart() {
     })
     .attr('height', barHeight)
     .style('fill', '#C69696')
-    .style('fill-opacity', 0)
-    .attr('x', 0)
+    .style('fill-opacity', 1)
+    .attr('x', 200)
     .attr('width', 0)
 
   d3.selectAll('circle')
     .transition()
     .duration(1000)
     .attr('cy', function (d, i) {
-      return i * (barHeight + barPadding) + barHeight / 2
+      if (i >= 10) {
+        i = 10
+      }
+      return i * (barHeight + barPadding) + barHeight / 2 + 100
     })
     .attr('cx', function (d) {
-      return 10
+      return 200
     })
-    .style('opacity', 0)
     .end()
-  .then(function() {
-    bars.transition()
-      .duration(500)
-      .attr('width', function(d) {
-        return parseFloat(d.production) / maxProduction * maxBarWidth;
-      })
-      .style('fill-opacity', 1);
-  });
+    .then(function () {
+      d3.selectAll('circle').transition().duration(500).style('opacity', 0)
+      bars
+        .transition()
+        .duration(500)
+        .attr('width', function (d) {
+          return (parseFloat(d.production) / maxProduction) * maxBarWidth
+        })
+      var labels = d3
+        .select('svg')
+        .selectAll('text')
+        .data(circles)
+        .enter()
+        .append('text')
+        .text(function (d) {
+          return d.name
+        })
+        .attr('y', function (d, i) {
+          return i * (barHeight + barPadding) + 100 - 3
+        })
+        .attr('x', 200)
+        .attr('font-size', '12px')
+        .attr('fill', 'black')
+        .attr('opacity', 0)
+        .transition()
+        .duration(500)
+        .attr('opacity', 1)
+    })
 }
 
 function resetMap() {

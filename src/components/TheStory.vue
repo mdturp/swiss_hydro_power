@@ -16,8 +16,8 @@ onMounted(() => {
 
   ScrollTrigger.create({
     trigger: '#message-1',
-    start: 'top 250px',
-    end: 'bottom 350px',
+    start: 'top 500px',
+    end: 'bottom 750px',
     markers: { startColor: 'black', endColor: 'black' },
     scrub: true,
     onEnter: () => transform('onEnter', 1),
@@ -25,9 +25,19 @@ onMounted(() => {
     //   onUpdate: (self) => rollCircleRoll(self.progress.toFixed(2))
   })
   ScrollTrigger.create({
+    trigger: '#message-2',
+    start: 'top 500px',
+    end: 'bottom 750px',
+    markers: { startColor: 'black', endColor: 'black' },
+    scrub: true,
+    onEnter: () => transform('onEnter', 2),
+    onLeaveBack: () => transform('onLeaveBack', 1)
+    //   onUpdate: (self) => rollCircleRoll(self.progress.toFixed(2))
+  })
+  ScrollTrigger.create({
     trigger: '#message-3',
-    start: 'top 250px',
-    end: 'bottom 350px',
+    start: 'top 500px',
+    end: 'bottom 750px',
     markers: { startColor: 'black', endColor: 'black' },
     scrub: true,
     onEnter: () => transform('onEnter', 0),
@@ -37,8 +47,8 @@ onMounted(() => {
 
   ScrollTrigger.create({
     trigger: '#message-4',
-    start: 'top 250px',
-    end: 'bottom 350px',
+    start: 'top 500px',
+    end: 'bottom 750px',
     markers: { startColor: 'black', endColor: 'black' },
     scrub: true,
     onEnter: () => transform('onEnter', 4),
