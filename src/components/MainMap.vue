@@ -21,8 +21,9 @@ watch(selectedMessage, (newSelectedMessage, oldSelectedMessage) => {
     stMoritz()
   } else if (newSelectedMessage === 2) {
     cities()
-  }
-  else if (newSelectedMessage === 4) {
+  } else if (newSelectedMessage === 3) {
+    firstDams()
+  } else if (newSelectedMessage === 4) {
     reorderToBarChart()
   }
 })
@@ -33,6 +34,8 @@ var switzerland_hydro_url = 'https://raw.githubusercontent.com/mdturp/qgis/main/
 var stMoritzCoordinates = [9.8355, 46.4908]
 var genevaCoordinates = [6.13732, 46.20467]
 var zurichCoordinates = [8.53301, 47.38702]
+var sihlseeCoordinates = [8.7801, 47.137]
+var innerthalCoordinates = [8.921, 47.075]
 
 const maxsize = 50
 const topHydroCount = 1000
@@ -151,6 +154,26 @@ async function draw_switzerland() {
       .attr('cx', projection(zurichCoordinates)[0])
       .attr('cy', projection(zurichCoordinates)[1])
       .attr('r', 0)
+
+    svg
+      .append('circle')
+      .attr('fill', '#C69696')
+      .attr('id', 'innerthal')
+      .attr('opacity', 0.0)
+      .attr('stroke', '#970D0D')
+      .attr('cx', projection(innerthalCoordinates)[0])
+      .attr('cy', projection(innerthalCoordinates)[1])
+      .attr('r', 0)
+
+    svg
+      .append('circle')
+      .attr('fill', '#C69696')
+      .attr('id', 'sihlsee')
+      .attr('opacity', 0.0)
+      .attr('stroke', '#970D0D')
+      .attr('cx', projection(sihlseeCoordinates)[0])
+      .attr('cy', projection(sihlseeCoordinates)[1])
+      .attr('r', 0)
   })
 }
 
@@ -190,21 +213,44 @@ function resetStMoritz() {
 }
 
 function cities() {
+  resetMap()
+  resetFirstDams()
   var svg = d3.selectAll('#stMoritz')
   svg.transition().duration(1000).style('opacity', 0.0).attr('r', 0)
   resetMap()
   var g = d3.selectAll('#geneva')
-  g.transition().duration(500).style('opacity', 0.6).attr('r', 20)
+  g.transition().duration(500).style('opacity', 0.6).attr('r', 10)
   var z = d3.selectAll('#zurich')
-  z.transition().duration(500).style('opacity', 0.6).attr('r', 20)
+  z.transition().duration(500).style('opacity', 0.6).attr('r', 10)
 }
 
 function resetCities() {
-    var svg = d3.selectAll('#geneva')
+  var svg = d3.selectAll('#geneva')
+  svg.transition().duration(1000).style('opacity', 0.0).attr('r', 0)
+  var svg = d3.selectAll('#zurich')
+  svg.transition().duration(1000).style('opacity', 0.0).attr('r', 0)
+}
+
+function resetFirstDams() {
+    var svg = d3.selectAll('#innerthal')
     svg.transition().duration(1000).style('opacity', 0.0).attr('r', 0)
-    var svg = d3.selectAll('#zurich')
+    var svg = d3.selectAll('#sihlsee')
     svg.transition().duration(1000).style('opacity', 0.0).attr('r', 0)
-    stMoritz()
+}
+
+
+function firstDams() {
+  resetCities()
+  var svg = d3.selectAll('#map')
+  svg
+    .transition()
+    .duration(750)
+    .ease(d3.easeSinIn)
+    .call(zoom.transform, d3.zoomIdentity.translate(-150, 20).scale(4.0).translate(-50, 50))
+  var i = d3.selectAll('#innerthal')
+  i.transition().duration(500).style('opacity', 0.6).attr('r', 10)
+  var s = d3.selectAll('#sihlsee')
+  s.transition().duration(500).style('opacity', 0.6).attr('r', 10)
 }
 
 function translateMap() {

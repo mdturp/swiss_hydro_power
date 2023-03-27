@@ -13,6 +13,6 @@ defineProps({
       {{ message.text }}
     </p>
 
-    <img v-if="message.imgUrl" :src="message.imgUrl" alt="image" class="max-w-[400px] " />
+    <img v-for="m in message.imgUrl" :src="m" alt="image" class="max-w-[400px]" :key="m" />
   </div>
 </template>

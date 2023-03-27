@@ -40,8 +40,8 @@ onMounted(() => {
     end: 'bottom 750px',
     markers: { startColor: 'black', endColor: 'black' },
     scrub: true,
-    onEnter: () => transform('onEnter', 0),
-    onLeaveBack: () => transform('onLeaveBack', 1)
+    onEnter: () => transform('onEnter', 3),
+    onLeaveBack: () => transform('onLeaveBack', 2)
     //   onUpdate: (self) => rollCircleRoll(self.progress.toFixed(2))
   })
 
