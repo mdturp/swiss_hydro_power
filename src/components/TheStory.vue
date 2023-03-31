@@ -12,6 +12,7 @@ import { onMounted, ref } from 'vue'
 const messagesStore = useMessageStore()
 
 onMounted(() => {
+  window.scrollTo(0, 0)
   gsap.registerPlugin(ScrollTrigger)
 
   ScrollTrigger.create({
@@ -52,8 +53,29 @@ onMounted(() => {
     markers: { startColor: 'black', endColor: 'black' },
     scrub: true,
     onEnter: () => transform('onEnter', 4),
-    onLeaveBack: () => transform('onLeaveBack', 0)
+    onLeaveBack: () => transform('onLeaveBack', 3)
     //   onUpdate: (self) => rollCircleRoll(self.progress.toFixed(2))
+  })
+
+  ScrollTrigger.create({
+    trigger: '#message-5',
+    start: 'top 500px',
+    end: 'bottom 750px',
+    markers: { startColor: 'black', endColor: 'black' },
+    scrub: true,
+    onEnter: () => transform('onEnter', 5),
+    onLeaveBack: () => transform('onLeaveBack', 4)
+    //   onUpdate: (self) => rollCircleRoll(self.progress.toFixed(2))
+  })
+
+  ScrollTrigger.create({
+    trigger: '#message-6',
+    start: 'top 500px',
+    end: 'bottom 750px',
+    markers: { startColor: 'black', endColor: 'black' },
+    scrub: true,
+    onEnter: () => transform('onEnter', 6),
+    onLeaveBack: () => transform('onLeaveBack', 5)
   })
 })
 
