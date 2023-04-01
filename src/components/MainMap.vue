@@ -2,71 +2,64 @@
 import * as d3 from 'd3'
 
 import { onMounted, watch } from 'vue'
-import { useMessageStore } from '@/stores/messages'
+import { useCentralStore } from '@/stores/central'
 import { storeToRefs } from 'pinia'
 
-const messagesStore = useMessageStore()
+import { getWidthHeight } from '@/utils/utils'
 
-const { messages, selectedMessage } = storeToRefs(messagesStore)
+const centralStore = useCentralStore()
 
-watch(selectedMessage, (newSelectedMessage, oldSelectedMessage) => {
-  if (newSelectedMessage === 0) {
-    resetStMoritz()
-  } else if (newSelectedMessage === 1) {
-    stMoritz()
-  } else if (newSelectedMessage === 2) {
-    cities()
-  } else if (newSelectedMessage === 3) {
-    firstDams()
-  } else if (newSelectedMessage === 4) {
-    resetFirstDams()
-    grande()
-  } else if (newSelectedMessage === 5 && oldSelectedMessage === 4) {
-    resetGrande()
-    resetMap()
-    d3.selectAll('.hydroCircle').transition().duration(1000).style('opacity', 0.6)
-  } else if (newSelectedMessage === 5 && oldSelectedMessage === 6) {
-    reorderToMap()
-  } else if (newSelectedMessage === 6) {
-    reorderToBarChart()
-  }
-})
-var switzerland_raster_url = 'https://github.com/mdturp/qgis/raw/main/switzerland3.png'
+const { messages, selectedMessage } = storeToRefs(centralStore)
+
+
 var switzerland_cantons_url = 'https://raw.githubusercontent.com/mdturp/qgis/main/cantons3.geojson'
 var switzerland_hydro_url = 'https://raw.githubusercontent.com/mdturp/qgis/main/HydroPowerData.csv'
 
-var stMoritzCoordinates = [9.8355, 46.4908]
-var genevaCoordinates = [6.13732, 46.20467]
-var zurichCoordinates = [8.53301, 47.38702]
-var sihlseeCoordinates = [8.7801, 47.137]
-var innerthalCoordinates = [8.921, 47.075]
-var grandeCoordinates = [7.3939, 46.0575]
-
-var maxsize = 50
-var topHydroCount = 2000
-var maxBarWidth = 400
-var w = 900
-const windowWidth = Math.min(window.innerWidth, w)
-var widthRatio = windowWidth / w
+var specialCoordinates = {
+  stMoritz: [9.8355, 46.4908],
+  geneva: [6.13732, 46.20467],
+  zurich: [8.53301, 47.38702],
+  sihlsee: [8.7801, 47.137],
+  innerthal: [8.921, 47.075],
+  grande: [7.3939, 46.0575]
+}
 
 
+var referenceWidth = 900
+const w = Math.min(window.innerWidth, referenceWidth)
+const widthRatio = w / referenceWidth
 
-maxsize = (windowWidth / w) * maxsize
-maxBarWidth = (windowWidth / w) * maxBarWidth
-w = windowWidth
+const maxNrCircles = 2000
+const maxCircleSize = 50 * widthRatio
+const circleOpacity = 0.6
+const specialCirclesSize = 10 * widthRatio
 
-async function draw_switzerland() {
+const maxBarWidth = 400 * widthRatio
+
+var mapTranslations = {
+  reset: [0, 0, 1.0],
+  stMoritz: [-800 * widthRatio, -600 * widthRatio, 4.0],
+  cities: [0, 0, 1.0],
+  firstDams: [-150 * widthRatio, 20 * widthRatio, 4.0],
+  grande: [1100 * widthRatio, -800 * widthRatio, 4.0],
+}
+
+
+function handleZoom(e) {
+  d3.select('svg').attr('transform', e.transform)
+}
+let zoom = d3.zoom().on('zoom', handleZoom)
+
+async function initStory() {
   var hydroData = await d3.csv(switzerland_hydro_url)
   var maxProduction = d3.max(hydroData, function (d) {
     return +d.production
   })
 
-  await d3.json(switzerland_cantons_url).then(function (data) {
-    const w_orig = 2525
-    const h_orig = 1619
+  await d3.json(switzerland_cantons_url).then(async function (data) {
+    var rasterSize = await getWidthHeight(centralStore.switzerlandRasterUrl)
+    const h = rasterSize['height'] * (w / rasterSize['width'])
 
-    const h = h_orig * (w / w_orig) 
-    
     var svg = d3
       .select('#mapContainer')
       .append('svg')
@@ -82,8 +75,6 @@ async function draw_switzerland() {
     const b = path.bounds(data)
 
     const s = 0.9 / Math.min((b[1][0] - b[0][0]) / w, (b[1][1] - b[0][1]) / h)
-
-    // transform
     const t = [(w - s * (b[1][0] + b[0][0])) / 2, (h - s * (b[1][1] + b[0][1])) / 2]
 
     projection.scale(s).translate(t)
@@ -94,17 +85,17 @@ async function draw_switzerland() {
     const raster_width = (b[1][0] - b[0][0]) * s
     const raster_height = (b[1][1] - b[0][1]) * s
 
-    const rtranslate_x = (w - raster_width) / 2
-    const rtranslate_y = (h - raster_height) / 2
-
+    const translate_x = (w - raster_width) / 2
+    const translate_y = (h - raster_height) / 2
+    console.log(centralStore.switzerlandRasterUrl)
     svg
       .append('image')
       .attr('id', 'Raster')
-      .attr('xlink:href', switzerland_raster_url)
+      .attr('xlink:href', centralStore.switzerlandRasterUrl)
       .attr('width', raster_width)
       .attr('height', raster_height)
       .attr('class', 'svg-content')
-      .attr('transform', 'translate(' + rtranslate_x + ', ' + rtranslate_y + ')')
+      .attr('transform', 'translate(' + translate_x + ', ' + translate_y + ')')
 
     svg
       .append('g')
@@ -114,19 +105,18 @@ async function draw_switzerland() {
       .enter()
       .append('path')
       .attr('fill', 'none')
-
       .attr('stroke', '#434141')
       .attr('stroke-width', 0.1)
       .attr('d', path)
 
     svg
       .selectAll('circle')
-      .data(hydroData.slice(0, topHydroCount))
+      .data(hydroData.slice(0, maxNrCircles))
       .enter()
       .append('circle')
       .attr('class', 'hydroCircle')
       .attr('fill', '#C69696')
-      .attr('opacity', 0.6)
+      .attr('opacity', circleOpacity)
       .attr('stroke', '#970D0D')
       .attr('cx', function (d) {
         return projection([d.x, d.y])[0]
@@ -138,182 +128,45 @@ async function draw_switzerland() {
       .transition()
       .duration(1000)
       .attr('r', function (d) {
-        return (d.production / maxProduction) * maxsize
+        return (d.production / maxProduction) * maxCircleSize
       })
 
-    svg
-      .append('circle')
-      .attr('fill', '#C69696')
-      .attr('id', 'stMoritz')
-      .attr('opacity', 0.0)
-      .attr('stroke', '#970D0D')
-      .attr('cx', projection(stMoritzCoordinates)[0])
-      .attr('cy', projection(stMoritzCoordinates)[1])
-      .attr('r', 0)
-
-    svg
-      .append('circle')
-      .attr('fill', '#C69696')
-      .attr('id', 'geneva')
-      .attr('opacity', 0.0)
-      .attr('stroke', '#970D0D')
-      .attr('cx', projection(genevaCoordinates)[0])
-      .attr('cy', projection(genevaCoordinates)[1])
-      .attr('r', 0)
-
-    svg
-      .append('circle')
-      .attr('fill', '#C69696')
-      .attr('id', 'zurich')
-      .attr('opacity', 0.0)
-      .attr('stroke', '#970D0D')
-      .attr('cx', projection(zurichCoordinates)[0])
-      .attr('cy', projection(zurichCoordinates)[1])
-      .attr('r', 0)
-
-    svg
-      .append('circle')
-      .attr('fill', '#C69696')
-      .attr('id', 'innerthal')
-      .attr('opacity', 0.0)
-      .attr('stroke', '#970D0D')
-      .attr('cx', projection(innerthalCoordinates)[0])
-      .attr('cy', projection(innerthalCoordinates)[1])
-      .attr('r', 0)
-
-    svg
-      .append('circle')
-      .attr('fill', '#C69696')
-      .attr('id', 'sihlsee')
-      .attr('opacity', 0.0)
-      .attr('stroke', '#970D0D')
-      .attr('cx', projection(sihlseeCoordinates)[0])
-      .attr('cy', projection(sihlseeCoordinates)[1])
-      .attr('r', 0)
-
-    svg
-      .append('circle')
-      .attr('fill', '#C69696')
-      .attr('id', 'grande')
-      .attr('opacity', 0.0)
-      .attr('stroke', '#970D0D')
-      .attr('cx', projection(grandeCoordinates)[0])
-      .attr('cy', projection(grandeCoordinates)[1])
-      .attr('r', 0)
+    for (var key in specialCoordinates) {
+      svg
+        .append('circle')
+        .attr('fill', '#C69696')
+        .attr('id', key)
+        .attr('opacity', 0.0)
+        .attr('stroke', '#970D0D')
+        .attr('cx', projection(specialCoordinates[key])[0])
+        .attr('cy', projection(specialCoordinates[key])[1])
+        .attr('r', 0)
+    }
   })
 }
 
-// Select svg element and add zoom event on click.
-
-let zoom = d3.zoom().on('zoom', handleZoom)
-
-function handleZoom(e) {
-  d3.select('svg').attr('transform', e.transform)
-}
-
-function stMoritz() {
-  d3.selectAll('circle')
-    .transition()
-    .duration(1000)
-    .style('opacity', 0)
-    .end()
-    .then(() => {
-      var svg = d3.selectAll('#map')
-      svg
-        .transition()
-        .duration(750)
-        .ease(d3.easeSinIn)
-        .call(
-          zoom.transform,
-          d3.zoomIdentity
-            .translate(-800 * widthRatio, -600 * widthRatio)
-            .scale(4.0)
-            .translate(-50*widthRatio, 50*widthRatio)
-        )
-      var svg = d3.selectAll('#stMoritz')
-      svg.transition().duration(1000).style('opacity', 0.6).attr('r', 10 * widthRatio)
-    })
-}
-
-function resetStMoritz() {
-  var svg = d3.selectAll('#stMoritz')
-  svg.transition().duration(1000).style('opacity', 0.0).attr('r', 0)
-
-  resetMap()
-  // reset hydro circles
-  d3.selectAll('.hydroCircle').transition().duration(1000).style('opacity', 0.6)
-}
-
-function cities() {
-  resetMap()
-  resetFirstDams()
-  var svg = d3.selectAll('#stMoritz')
-  svg.transition().duration(1000).style('opacity', 0.0).attr('r', 0)
-  resetMap()
-  var g = d3.selectAll('#geneva')
-  g.transition().duration(500).style('opacity', 0.6).attr('r', 10 * widthRatio)
-  var z = d3.selectAll('#zurich')
-  z.transition().duration(500).style('opacity', 0.6).attr('r', 10 * widthRatio)
-}
-
-function resetCities() {
-  var svg = d3.selectAll('#geneva')
-  svg.transition().duration(1000).style('opacity', 0.0).attr('r', 0)
-  var svg = d3.selectAll('#zurich')
-  svg.transition().duration(1000).style('opacity', 0.0).attr('r', 0)
-}
-
-function resetFirstDams() {
-  var svg = d3.selectAll('#innerthal')
-  svg.transition().duration(1000).style('opacity', 0.0).attr('r', 0)
-  var svg = d3.selectAll('#sihlsee')
-  svg.transition().duration(1000).style('opacity', 0.0).attr('r', 0)
-}
-
-function firstDams() {
-  resetCities()
-  resetGrande()
+function shiftMap(c, addition=[50,50]) {
   var svg = d3.selectAll('#map')
   svg
     .transition()
     .duration(750)
     .ease(d3.easeSinIn)
     .call(zoom.transform, d3.zoomIdentity.translate(
-        -150*widthRatio, 20*widthRatio).scale(4.0).translate(
-            -50*widthRatio, 50*widthRatio))
-  var i = d3.selectAll('#innerthal')
-  i.transition().duration(500).style('opacity', 0.6).attr('r', 10 * widthRatio)
-  var s = d3.selectAll('#sihlsee')
-  s.transition().duration(500).style('opacity', 0.6).attr('r', 10 * widthRatio)
+        c[0], c[1]).scale(c[2]).translate(
+            -addition[0] * widthRatio, addition[0] * widthRatio))
 }
 
-function resetGrande() {
-  var svg = d3.selectAll('#grande')
-  svg.transition().duration(1000).style('opacity', 0.0).attr('r', 0)
+function resetHydro(op=circleOpacity) {
+  d3.selectAll('.hydroCircle').transition().duration(1000).style('opacity', op)
 }
 
-function grande() {
-  var svg = d3.selectAll('#map')
-  d3.selectAll('.hydroCircle').transition().duration(1000).style('opacity', 0)
-  svg
-    .transition()
-    .duration(750)
-    .ease(d3.easeSinIn)
-    .call(zoom.transform, d3.zoomIdentity.translate(
-        1100*widthRatio, -800*widthRatio).scale(4.0).translate(
-            -50*widthRatio, 50*widthRatio))
-  var i = d3.selectAll('#grande')
-  i.transition().duration(500).style('opacity', 0.6).attr('r', 10 * widthRatio)
+function drawSpecialPoint(name) {
+  var svg = d3.selectAll('#' + name)
+  svg.transition().duration(1000).style('opacity', circleOpacity).attr('r', specialCirclesSize)
 }
-
-function translateMap() {
-  var svg = d3.selectAll('#map')
-  svg
-    .transition()
-    .duration(750)
-    .ease(d3.easeSinIn)
-    .call(zoom.transform, d3.zoomIdentity.translate(
-        -50*widthRatio, 100*widthRatio).scale(3.0).translate(-50*widthRatio, 50*widthRatio))
+function resetSpecialPoint(name) {
+  var svg = d3.selectAll('#' + name)
+  svg.transition().duration(1000).style('opacity', 0).attr('r', 0)
 }
 
 async function reorderToBarChart() {
@@ -329,9 +182,7 @@ async function reorderToMap() {
 }
 
 function moveAndDrawMap() {
-  // Remove bar chart
   d3.selectAll('#bars').remove()
-  // Remove labels
   d3.selectAll('#barLabels').remove()
 
   var circles = d3.selectAll('.hydroCircle')
@@ -346,7 +197,7 @@ function moveAndDrawMap() {
     .attr('cy', function (d) {
       return d.projection[1]
     })
-    .style('opacity', 0.6)
+    .style('opacity', circleOpacity)
 }
 
 async function fadeOutBackground() {
@@ -398,12 +249,12 @@ function moveAndDrawBarChart() {
     .enter()
     .append('rect')
     .attr('y', function (d, i) {
-      return i * (barHeight + barPadding) + 100*widthRatio
+      return i * (barHeight + barPadding) + 100 * widthRatio
     })
     .attr('height', barHeight)
     .style('fill', '#C69696')
     .style('fill-opacity', 1)
-    .attr('x', 200*widthRatio)
+    .attr('x', 200 * widthRatio)
     .attr('width', 0)
 
   d3.selectAll('.hydroCircle')
@@ -413,10 +264,10 @@ function moveAndDrawBarChart() {
       if (i >= 10) {
         i = 10
       }
-      return i * (barHeight + barPadding) + barHeight / 2 + 100*widthRatio
+      return i * (barHeight + barPadding) + barHeight / 2 + 100 * widthRatio
     })
     .attr('cx', function (d) {
-      return 200*widthRatio
+      return 200 * widthRatio
     })
     .end()
     .then(function () {
@@ -439,9 +290,9 @@ function moveAndDrawBarChart() {
           return d.name + ' (' + Number(d.production).toFixed(2) + ' GWh/a)'
         })
         .attr('y', function (d, i) {
-          return i * (barHeight + barPadding) + 100*widthRatio - 3
+          return i * (barHeight + barPadding) + 100 * widthRatio - 3
         })
-        .attr('x', 200*widthRatio)
+        .attr('x', 200 * widthRatio)
         .attr('font-size', '12px')
         .attr('fill', 'black')
         .attr('opacity', 0)
@@ -451,35 +302,64 @@ function moveAndDrawBarChart() {
     })
 }
 
-function resetMap() {
-  var svg = d3.selectAll('#map')
-  svg
-    .transition()
-    .duration(750)
-    .ease(d3.easeSinIn)
-    .call(zoom.transform, d3.zoomIdentity.translate(0, 0).scale(1.0))
-
-  fadeInBackground()
-  fadeInBorder()
-}
-
-const loadImage = (path) => {
-  return new Promise((resolve, reject) => {
-    const img = new Image()
-    // img.crossOrigin = 'Anonymous' // to avoid CORS if used with Canvas
-    img.src = path
-    img.onload = () => {
-      resolve(img)
-    }
-    img.onerror = (e) => {
-      reject(e)
-    }
-  })
-}
-
 onMounted(async () => {
-  await loadImage(switzerland_raster_url)
-  await draw_switzerland()
+  await initStory()
+})
+
+watch(selectedMessage, (newId, oldId) => {
+  if (newId === 0 && oldId === 1) {
+    resetSpecialPoint('stMoritz')
+    shiftMap(mapTranslations.reset, [0,0])
+    resetHydro()
+  } else if (newId === 1 && oldId === 0) {
+    resetHydro(0.0)
+    shiftMap(mapTranslations.stMoritz)
+    drawSpecialPoint('stMoritz')
+  } else if (newId === 1 && oldId === 2) {
+    resetSpecialPoint('geneva')
+    resetSpecialPoint('zurich') 
+    shiftMap(mapTranslations.stMoritz)
+    drawSpecialPoint('stMoritz')
+  } else if (newId === 2 && oldId === 1) {
+    resetSpecialPoint('stMoritz')
+    shiftMap(mapTranslations.cities)
+    drawSpecialPoint('geneva')
+    drawSpecialPoint('zurich')
+  } else if (newId === 2 && oldId === 3) {
+    resetSpecialPoint('sihlsee')
+    resetSpecialPoint('innerthal')
+    shiftMap(mapTranslations.cities)
+    drawSpecialPoint('geneva')
+    drawSpecialPoint('zurich')
+  } else if (newId === 3 && oldId === 2) {
+    resetSpecialPoint('geneva')
+    resetSpecialPoint('zurich')
+    shiftMap(mapTranslations.firstDams)
+    drawSpecialPoint('sihlsee')
+    drawSpecialPoint('innerthal')
+  } else if (newId === 3 && oldId === 4) {
+    resetSpecialPoint('grande')
+    shiftMap(mapTranslations.firstDams)
+    drawSpecialPoint('sihlsee')
+    drawSpecialPoint('innerthal')
+  } else if (newId === 4 && oldId === 3) {
+    resetSpecialPoint('sihlsee')
+    resetSpecialPoint('innerthal')
+    shiftMap(mapTranslations.grande)
+    drawSpecialPoint('grande')
+  } else if (newId === 4 && oldId === 5) { 
+    resetHydro(0.0)
+    shiftMap(mapTranslations.grande)
+    drawSpecialPoint('grande')
+  } else if (newId === 5 && oldId === 4) {
+    resetSpecialPoint('grande')
+    shiftMap(mapTranslations.reset, [0,0])
+    resetHydro()
+  } else if (newId === 5 && oldId === 6) {
+    reorderToMap()
+  } else if (newId === 6) {
+    reorderToBarChart()
+  }
 })
 </script>
 

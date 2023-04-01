@@ -3,16 +3,21 @@ import MainHeader from '@/components/MainHeader.vue'
 import MainTimeline from '@/components/MainTimeline.vue'
 import MainMessage from '@/components/MainMessage.vue'
 import MainMap from '@/components/MainMap.vue'
-import { useMessageStore } from '@/stores/messages'
+import { useCentralStore } from '@/stores/central'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
 import { onMounted, ref } from 'vue'
 
-const messagesStore = useMessageStore()
+const centralStore = useCentralStore()
+const imageLoaded = ref(false)
 
-onMounted(() => {
+onMounted(async () => {
   window.scrollTo(0, 0)
+
+  await loadImage(centralStore.switzerlandRasterUrl);
+  imageLoaded.value = true;
+  
   gsap.registerPlugin(ScrollTrigger)
 
   ScrollTrigger.create({
@@ -23,7 +28,6 @@ onMounted(() => {
     scrub: true,
     onEnter: () => transform('onEnter', 1),
     onLeaveBack: () => transform('onLeaveBack', 0)
-    //   onUpdate: (self) => rollCircleRoll(self.progress.toFixed(2))
   })
   ScrollTrigger.create({
     trigger: '#message-2',
@@ -33,7 +37,6 @@ onMounted(() => {
     scrub: true,
     onEnter: () => transform('onEnter', 2),
     onLeaveBack: () => transform('onLeaveBack', 1)
-    //   onUpdate: (self) => rollCircleRoll(self.progress.toFixed(2))
   })
   ScrollTrigger.create({
     trigger: '#message-3',
@@ -43,7 +46,6 @@ onMounted(() => {
     scrub: true,
     onEnter: () => transform('onEnter', 3),
     onLeaveBack: () => transform('onLeaveBack', 2)
-    //   onUpdate: (self) => rollCircleRoll(self.progress.toFixed(2))
   })
 
   ScrollTrigger.create({
@@ -54,7 +56,6 @@ onMounted(() => {
     scrub: true,
     onEnter: () => transform('onEnter', 4),
     onLeaveBack: () => transform('onLeaveBack', 3)
-    //   onUpdate: (self) => rollCircleRoll(self.progress.toFixed(2))
   })
 
   ScrollTrigger.create({
@@ -65,7 +66,6 @@ onMounted(() => {
     scrub: true,
     onEnter: () => transform('onEnter', 5),
     onLeaveBack: () => transform('onLeaveBack', 4)
-    //   onUpdate: (self) => rollCircleRoll(self.progress.toFixed(2))
   })
 
   ScrollTrigger.create({
@@ -81,21 +81,34 @@ onMounted(() => {
 
 function transform(m, message) {
   if (m === 'onEnter') {
-    messagesStore.selectedMessage = message
+    centralStore.selectedMessage = message
   } else if (m === 'onLeaveBack') {
-    messagesStore.selectedMessage = message
+    centralStore.selectedMessage = message
   }
+}
+
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.src = src
+    img.onload = () => resolve(img)
+    img.onerror = (error) => reject(error)
+  })
 }
 </script>
 
 <template>
-  <div id="parentContainer" class="relative font-serif mx-auto max-w-lg lg:max-w-3xl xl:max-w-4xl">
+  <div
+    v-show="imageLoaded"
+    id="parentContainer"
+    class="relative font-serif mx-auto max-w-lg lg:max-w-3xl xl:max-w-4xl"
+  >
     <MainHeader />
     <MainTimeline class="z-30" />
     <MainMap class="sticky z-10 top-20" />
     <MainMessage
       class="relative z-20"
-      v-for="m in messagesStore.messages"
+      v-for="m in centralStore.messages"
       :message="m"
       :key="m.id"
     />

@@ -1,4 +1,4 @@
-import { ref, computed } from 'vue'
+import { ref, markRaw, readonly } from 'vue'
 import { defineStore } from 'pinia'
 import stMoritzImgUrl from '@/assets/imgs/StMoritzKulm.jpg'
 import genevaImgUrl from '@/assets/imgs/Geneva.jpg'
@@ -7,7 +7,11 @@ import innerthalOldImgUrl from '@/assets/imgs/Innerthal_old.jpg'
 import innerthalNewImgUrl from '@/assets/imgs/Innerthal_new.jpg'
 import grandeDixenceImgUrl from '@/assets/imgs/GrandeDixence.jpg'
 
-export const useMessageStore = defineStore('message', () => {
+export const useCentralStore = defineStore('central', () => {
+  
+  const switzerlandRasterUrl = 'https://github.com/mdturp/qgis/raw/main/switzerland3.png'
+
+
   const messages = ref([
     { text: '', id: 0, imgUrl: [] },
     {
@@ -63,5 +67,5 @@ export const useMessageStore = defineStore('message', () => {
 
   const selectedMessage = ref(0)
 
-  return { messages, selectedMessage }
+  return { messages, selectedMessage, switzerlandRasterUrl }
 })
