@@ -61,6 +61,11 @@ export const useCentralStore = defineStore('central', () => {
       id: 6,
       imgUrl: []
     },
+    {
+      text: '',
+      id: 7,
+      imgUrl: []
+    }
   ])
 
   const selectedMessage = ref(0)

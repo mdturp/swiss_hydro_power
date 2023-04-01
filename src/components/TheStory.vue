@@ -121,7 +121,7 @@ function loadImage(src) {
         :key="m.id"
       />
     </div>
-    <p class="font-serif mx-auto max-w-lg lg:max-w-xl xl:max-w-2xl">
+    <p class="font-serif mx-auto max-w-lg lg:max-w-xl xl:max-w-2xl p-5">
       A common need for data binding is manipulating an element's class list and inline styles.
       Since class and style are both attributes, we can use v-bind to assign them a string value
       dynamically, much like with other attributes. However, trying to generate those values using
