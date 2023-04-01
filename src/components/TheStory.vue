@@ -15,9 +15,9 @@ const imageLoaded = ref(false)
 onMounted(async () => {
   window.scrollTo(0, 0)
 
-  await loadImage(centralStore.switzerlandRasterUrl);
-  imageLoaded.value = true;
-  
+  await loadImage(centralStore.switzerlandRasterUrl)
+  imageLoaded.value = true
+
   gsap.registerPlugin(ScrollTrigger)
 
   ScrollTrigger.create({
@@ -77,6 +77,15 @@ onMounted(async () => {
     onEnter: () => transform('onEnter', 6),
     onLeaveBack: () => transform('onLeaveBack', 5)
   })
+  ScrollTrigger.create({
+    trigger: '#message-7',
+    start: 'top 500px',
+    end: 'bottom 750px',
+    markers: { startColor: 'black', endColor: 'black' },
+    scrub: true,
+    onEnter: () => transform('onEnter', 7),
+    onLeaveBack: () => transform('onLeaveBack', 6)
+  })
 })
 
 function transform(m, message) {
@@ -98,19 +107,33 @@ function loadImage(src) {
 </script>
 
 <template>
-  <div
-    v-show="imageLoaded"
-    id="parentContainer"
-    class="relative font-serif mx-auto max-w-lg lg:max-w-3xl xl:max-w-4xl"
-  >
-    <MainHeader />
-    <MainTimeline class="z-30" />
-    <MainMap class="sticky z-10 top-20" />
-    <MainMessage
-      class="relative z-20"
-      v-for="m in centralStore.messages"
-      :message="m"
-      :key="m.id"
-    />
+  <div v-show="imageLoaded">
+    <div id="parentContainer"
+      class="relative font-serif mx-auto max-w-lg lg:max-w-3xl xl:max-w-4xl"
+    >
+      <MainHeader />
+      <MainTimeline class="z-30" />
+      <MainMap class="sticky z-10 top-20" />
+      <MainMessage
+        class="relative z-20"
+        v-for="m in centralStore.messages"
+        :message="m"
+        :key="m.id"
+      />
+    </div>
+    <p class="font-serif mx-auto max-w-lg lg:max-w-xl xl:max-w-2xl">
+      A common need for data binding is manipulating an element's class list and inline styles.
+      Since class and style are both attributes, we can use v-bind to assign them a string value
+      dynamically, much like with other attributes. However, trying to generate those values using
+      string concatenation can be annoying and error-prone. For this reason, Vue provides special
+      enhancements when v-bind is used with class and style. In addition to strings, the expressions
+      can also evaluate to objects or arrays. A common need for data binding is manipulating an
+      element's class list and inline styles. Since class and style are both attributes, we can use
+      v-bind to assign them a string value dynamically, much like with other attributes. However,
+      trying to generate those values using string concatenation can be annoying and error-prone.
+      For this reason, Vue provides special enhancements when v-bind is used with class and style.
+      In addition to strings, the expressions can also evaluate to objects or arrays.
+    </p>
+    <div class="pb-[90vh]"></div>
   </div>
 </template>

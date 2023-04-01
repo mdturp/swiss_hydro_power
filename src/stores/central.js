@@ -8,9 +8,7 @@ import innerthalNewImgUrl from '@/assets/imgs/Innerthal_new.jpg'
 import grandeDixenceImgUrl from '@/assets/imgs/GrandeDixence.jpg'
 
 export const useCentralStore = defineStore('central', () => {
-  
   const switzerlandRasterUrl = 'https://github.com/mdturp/qgis/raw/main/switzerland3.png'
-
 
   const messages = ref([
     { text: '', id: 0, imgUrl: [] },
@@ -62,7 +60,7 @@ export const useCentralStore = defineStore('central', () => {
       text: '',
       id: 6,
       imgUrl: []
-    }
+    },
   ])
 
   const selectedMessage = ref(0)
