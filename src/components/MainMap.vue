@@ -1,7 +1,5 @@
 <script setup>
 import * as d3 from 'd3'
-import * as topojson from 'topojson-client'
-import * as turf from '@turf/turf'
 
 import { onMounted, watch } from 'vue'
 import { useMessageStore } from '@/stores/messages'
@@ -12,9 +10,6 @@ const messagesStore = useMessageStore()
 const { messages, selectedMessage } = storeToRefs(messagesStore)
 
 watch(selectedMessage, (newSelectedMessage, oldSelectedMessage) => {
-  console.log('newMessages', newSelectedMessage)
-  console.log('oldMessages', oldSelectedMessage)
-
   if (newSelectedMessage === 0) {
     resetStMoritz()
   } else if (newSelectedMessage === 1) {
@@ -32,8 +27,7 @@ watch(selectedMessage, (newSelectedMessage, oldSelectedMessage) => {
     d3.selectAll('.hydroCircle').transition().duration(1000).style('opacity', 0.6)
   } else if (newSelectedMessage === 5 && oldSelectedMessage === 6) {
     reorderToMap()
-  }
-  else if (newSelectedMessage === 6) {
+  } else if (newSelectedMessage === 6) {
     reorderToBarChart()
   }
 })
@@ -48,9 +42,18 @@ var sihlseeCoordinates = [8.7801, 47.137]
 var innerthalCoordinates = [8.921, 47.075]
 var grandeCoordinates = [7.3939, 46.0575]
 
-const maxsize = 50
-const topHydroCount = 1000
-const maxBarWidth = 400
+var maxsize = 50
+var topHydroCount = 2000
+var maxBarWidth = 400
+var w = 900
+const windowWidth = Math.min(window.innerWidth, w)
+var widthRatio = windowWidth / w
+
+
+
+maxsize = (windowWidth / w) * maxsize
+maxBarWidth = (windowWidth / w) * maxBarWidth
+w = windowWidth
 
 async function draw_switzerland() {
   var hydroData = await d3.csv(switzerland_hydro_url)
@@ -62,9 +65,8 @@ async function draw_switzerland() {
     const w_orig = 2525
     const h_orig = 1619
 
-    const w = 900
-    const h = h_orig * (w / w_orig)
-
+    const h = h_orig * (w / w_orig) 
+    
     var svg = d3
       .select('#mapContainer')
       .append('svg')
@@ -221,9 +223,15 @@ function stMoritz() {
         .transition()
         .duration(750)
         .ease(d3.easeSinIn)
-        .call(zoom.transform, d3.zoomIdentity.translate(-800, -600).scale(4.0).translate(-50, 50))
+        .call(
+          zoom.transform,
+          d3.zoomIdentity
+            .translate(-800 * widthRatio, -600 * widthRatio)
+            .scale(4.0)
+            .translate(-50*widthRatio, 50*widthRatio)
+        )
       var svg = d3.selectAll('#stMoritz')
-      svg.transition().duration(1000).style('opacity', 0.6).attr('r', 10)
+      svg.transition().duration(1000).style('opacity', 0.6).attr('r', 10 * widthRatio)
     })
 }
 
@@ -243,9 +251,9 @@ function cities() {
   svg.transition().duration(1000).style('opacity', 0.0).attr('r', 0)
   resetMap()
   var g = d3.selectAll('#geneva')
-  g.transition().duration(500).style('opacity', 0.6).attr('r', 10)
+  g.transition().duration(500).style('opacity', 0.6).attr('r', 10 * widthRatio)
   var z = d3.selectAll('#zurich')
-  z.transition().duration(500).style('opacity', 0.6).attr('r', 10)
+  z.transition().duration(500).style('opacity', 0.6).attr('r', 10 * widthRatio)
 }
 
 function resetCities() {
@@ -270,11 +278,13 @@ function firstDams() {
     .transition()
     .duration(750)
     .ease(d3.easeSinIn)
-    .call(zoom.transform, d3.zoomIdentity.translate(-150, 20).scale(4.0).translate(-50, 50))
+    .call(zoom.transform, d3.zoomIdentity.translate(
+        -150*widthRatio, 20*widthRatio).scale(4.0).translate(
+            -50*widthRatio, 50*widthRatio))
   var i = d3.selectAll('#innerthal')
-  i.transition().duration(500).style('opacity', 0.6).attr('r', 10)
+  i.transition().duration(500).style('opacity', 0.6).attr('r', 10 * widthRatio)
   var s = d3.selectAll('#sihlsee')
-  s.transition().duration(500).style('opacity', 0.6).attr('r', 10)
+  s.transition().duration(500).style('opacity', 0.6).attr('r', 10 * widthRatio)
 }
 
 function resetGrande() {
@@ -289,9 +299,11 @@ function grande() {
     .transition()
     .duration(750)
     .ease(d3.easeSinIn)
-    .call(zoom.transform, d3.zoomIdentity.translate(1100, -800).scale(4.0).translate(-50, 50))
+    .call(zoom.transform, d3.zoomIdentity.translate(
+        1100*widthRatio, -800*widthRatio).scale(4.0).translate(
+            -50*widthRatio, 50*widthRatio))
   var i = d3.selectAll('#grande')
-  i.transition().duration(500).style('opacity', 0.6).attr('r', 10)
+  i.transition().duration(500).style('opacity', 0.6).attr('r', 10 * widthRatio)
 }
 
 function translateMap() {
@@ -300,7 +312,8 @@ function translateMap() {
     .transition()
     .duration(750)
     .ease(d3.easeSinIn)
-    .call(zoom.transform, d3.zoomIdentity.translate(-50, 100).scale(3.0).translate(-50, 50))
+    .call(zoom.transform, d3.zoomIdentity.translate(
+        -50*widthRatio, 100*widthRatio).scale(3.0).translate(-50*widthRatio, 50*widthRatio))
 }
 
 async function reorderToBarChart() {
@@ -310,31 +323,30 @@ async function reorderToBarChart() {
 }
 
 async function reorderToMap() {
-
   fadeInBackground()
   fadeInBorder()
   moveAndDrawMap()
 }
 
 function moveAndDrawMap() {
-    // Remove bar chart
-    d3.selectAll('#bars').remove()
-    // Remove labels
-    d3.selectAll('#barLabels').remove()
+  // Remove bar chart
+  d3.selectAll('#bars').remove()
+  // Remove labels
+  d3.selectAll('#barLabels').remove()
 
-    var circles = d3.selectAll('.hydroCircle')
-    
-    // Move the circles to their new positions
-    circles
-        .transition()
-        .duration(1000)
-        .attr('cx', function (d) {
-        return d.projection[0]
-        })
-        .attr('cy', function (d) {
-        return d.projection[1]
-        })
-        .style('opacity', 0.6)
+  var circles = d3.selectAll('.hydroCircle')
+
+  // Move the circles to their new positions
+  circles
+    .transition()
+    .duration(1000)
+    .attr('cx', function (d) {
+      return d.projection[0]
+    })
+    .attr('cy', function (d) {
+      return d.projection[1]
+    })
+    .style('opacity', 0.6)
 }
 
 async function fadeOutBackground() {
@@ -359,7 +371,6 @@ async function fadeInBorder() {
 
 function moveAndDrawBarChart() {
   var circles = d3.selectAll('.hydroCircle').data()
-
 
   // Sort the circles by size (radius)
   circles.sort(function (a, b) {
@@ -387,12 +398,12 @@ function moveAndDrawBarChart() {
     .enter()
     .append('rect')
     .attr('y', function (d, i) {
-      return i * (barHeight + barPadding) + 100
+      return i * (barHeight + barPadding) + 100*widthRatio
     })
     .attr('height', barHeight)
     .style('fill', '#C69696')
     .style('fill-opacity', 1)
-    .attr('x', 200)
+    .attr('x', 200*widthRatio)
     .attr('width', 0)
 
   d3.selectAll('.hydroCircle')
@@ -402,10 +413,10 @@ function moveAndDrawBarChart() {
       if (i >= 10) {
         i = 10
       }
-      return i * (barHeight + barPadding) + barHeight / 2 + 100
+      return i * (barHeight + barPadding) + barHeight / 2 + 100*widthRatio
     })
     .attr('cx', function (d) {
-      return 200
+      return 200*widthRatio
     })
     .end()
     .then(function () {
@@ -428,9 +439,9 @@ function moveAndDrawBarChart() {
           return d.name + ' (' + Number(d.production).toFixed(2) + ' GWh/a)'
         })
         .attr('y', function (d, i) {
-          return i * (barHeight + barPadding) + 100 - 3
+          return i * (barHeight + barPadding) + 100*widthRatio - 3
         })
-        .attr('x', 200)
+        .attr('x', 200*widthRatio)
         .attr('font-size', '12px')
         .attr('fill', 'black')
         .attr('opacity', 0)
