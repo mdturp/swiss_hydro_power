@@ -3,6 +3,7 @@ import MainHeader from '@/components/MainHeader.vue'
 import MainTimeline from '@/components/MainTimeline.vue'
 import MainMessage from '@/components/MainMessage.vue'
 import MainMap from '@/components/MainMap.vue'
+import MainFooter from '@/components/MainFooter.vue'
 import { useCentralStore } from '@/stores/central'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
@@ -99,7 +100,8 @@ function loadImage(src) {
 
 <template>
   <div v-show="imageLoaded">
-    <div id="parentContainer"
+    <div
+      id="parentContainer"
       class="relative font-serif mx-auto max-w-lg lg:max-w-3xl xl:max-w-4xl"
     >
       <MainHeader />
@@ -113,18 +115,17 @@ function loadImage(src) {
       />
     </div>
     <p class="font-serif mx-auto max-w-lg lg:max-w-xl xl:max-w-2xl p-5">
-      A common need for data binding is manipulating an element's class list and inline styles.
-      Since class and style are both attributes, we can use v-bind to assign them a string value
-      dynamically, much like with other attributes. However, trying to generate those values using
-      string concatenation can be annoying and error-prone. For this reason, Vue provides special
-      enhancements when v-bind is used with class and style. In addition to strings, the expressions
-      can also evaluate to objects or arrays. A common need for data binding is manipulating an
-      element's class list and inline styles. Since class and style are both attributes, we can use
-      v-bind to assign them a string value dynamically, much like with other attributes. However,
-      trying to generate those values using string concatenation can be annoying and error-prone.
-      For this reason, Vue provides special enhancements when v-bind is used with class and style.
-      In addition to strings, the expressions can also evaluate to objects or arrays.
+      Today ~57% of all electricity produced in Switzerland comes from hydropower. Of this, 48.3% is
+      produced in run-of-river power plants, 47.5% in storage power plants, and approximately 4.2%
+      in pumped storage power plants. The mountainous cantons of Uri, Grisons, Ticino, and Valais
+      are responsible for around 63% of the total hydroelectricity produced. Despite the success of
+      the Swiss hydropower, challenges remain. Climate change and its impact on water availability
+      pose a significant threat to the sector. In recent years, the country has experienced lower
+      water levels in rivers and receding glaciers, which has affected hydropower generation. To
+      address these challenges, Switzerland is investing in research and development to improve the
+      efficiency of its hydropower infrastructure and explore new technologies.
     </p>
-    <div class="pb-[90vh]"></div>
+    <div class="pb-[30vh]"></div>
+    <MainFooter></MainFooter>
   </div>
 </template>
