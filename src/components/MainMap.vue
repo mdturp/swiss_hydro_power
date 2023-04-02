@@ -27,6 +27,7 @@ var specialCoordinates = {
 
 var referenceWidth = 900
 const w = Math.min(window.innerWidth, referenceWidth)
+const hAddition = 0 ? w >= 600 : 200 
 const widthRatio = w / referenceWidth
 
 const maxNrCircles = 2000
@@ -38,10 +39,10 @@ const maxBarWidth = 400 * widthRatio
 
 var mapTranslations = {
   reset: [0, 0, 1.0],
-  stMoritz: [-800 * widthRatio, -600 * widthRatio, 4.0],
+  stMoritz: [-800 * widthRatio, (-600 + 4*hAddition) * widthRatio, 4.0],
   cities: [0, 0, 1.0],
-  firstDams: [-150 * widthRatio, 20 * widthRatio, 4.0],
-  grande: [1100 * widthRatio, -800 * widthRatio, 4.0],
+  firstDams: [-150 * widthRatio, 20 * widthRatio + 2*hAddition, 4.0],
+  grande: [1100 * widthRatio, -800 * widthRatio + 2*hAddition, 4.0],
 }
 
 
@@ -66,7 +67,7 @@ async function initStory() {
       .attr('id', 'map')
       .attr('preserveAspectRatio', 'xMinYMin meet')
       .attr('width', w)
-      .attr('height', h)
+      .attr('height', h + hAddition)
       .classed('svg-content', true)
 
     const projection = d3.geoMercator().translate([0, 0]).scale(1)
@@ -322,13 +323,13 @@ watch(selectedMessage, (newId, oldId) => {
     drawSpecialPoint('stMoritz')
   } else if (newId === 2 && oldId === 1) {
     resetSpecialPoint('stMoritz')
-    shiftMap(mapTranslations.cities)
+    shiftMap(mapTranslations.cities, [0,0])
     drawSpecialPoint('geneva')
     drawSpecialPoint('zurich')
   } else if (newId === 2 && oldId === 3) {
     resetSpecialPoint('sihlsee')
     resetSpecialPoint('innerthal')
-    shiftMap(mapTranslations.cities)
+    shiftMap(mapTranslations.cities, [0,0])
     drawSpecialPoint('geneva')
     drawSpecialPoint('zurich')
   } else if (newId === 3 && oldId === 2) {

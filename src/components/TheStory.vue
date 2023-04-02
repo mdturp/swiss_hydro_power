@@ -77,15 +77,6 @@ onMounted(async () => {
     onEnter: () => transform('onEnter', 6),
     onLeaveBack: () => transform('onLeaveBack', 5)
   })
-  ScrollTrigger.create({
-    trigger: '#message-7',
-    start: 'top 500px',
-    end: 'bottom 750px',
-    markers: { startColor: 'black', endColor: 'black' },
-    scrub: true,
-    onEnter: () => transform('onEnter', 7),
-    onLeaveBack: () => transform('onLeaveBack', 6)
-  })
 })
 
 function transform(m, message) {

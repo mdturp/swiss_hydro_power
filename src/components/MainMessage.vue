@@ -8,7 +8,7 @@ defineProps({
 </script>
 
 <template>
-  <div :id="'message-' + message.id" class="max-w-[400px] pb-[70vh]">
+  <div :id="'message-' + message.id" class="max-w-[600px] sm:max-w-[400px] pb-[70vh]">
     <p v-if="message.text !== ''" class=" bg-gray-200 px-[16px] py-[10px]">
       {{ message.text }}
     </p>
