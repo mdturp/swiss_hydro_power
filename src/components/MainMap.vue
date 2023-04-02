@@ -30,7 +30,7 @@ const w = Math.min(window.innerWidth, referenceWidth)
 const hAddition = 0 ? w >= 600 : 200 
 const widthRatio = w / referenceWidth
 
-const maxNrCircles = 2000
+const maxNrCircles = 1000 ? w >= 600 : 200
 const maxCircleSize = 50 * widthRatio
 const circleOpacity = 0.6
 const specialCirclesSize = 10 * widthRatio
