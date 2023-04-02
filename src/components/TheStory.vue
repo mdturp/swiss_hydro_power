@@ -104,7 +104,7 @@ function loadImage(src) {
     >
       <MainHeader />
       <MainTimeline class="z-30" />
-      <MainMap class="sticky z-10 top-20" />
+      <MainMap class="sticky z-10 pt-20 top-0 overflow-y-auto sm:overflow-visible" />
       <MainMessage
         class="relative z-20"
         v-for="m in centralStore.messages"

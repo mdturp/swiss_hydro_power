@@ -11,7 +11,6 @@ const centralStore = useCentralStore()
 
 const { messages, selectedMessage } = storeToRefs(centralStore)
 
-
 var switzerland_cantons_url = 'https://raw.githubusercontent.com/mdturp/qgis/main/cantons3.geojson'
 var switzerland_hydro_url = 'https://raw.githubusercontent.com/mdturp/qgis/main/HydroPowerData.csv'
 
@@ -24,13 +23,19 @@ var specialCoordinates = {
   grande: [7.3939, 46.0575]
 }
 
-
-var referenceWidth = 900
+if (window.innerWidth > 1024 && window.innerWidth < 1280) {
+  var referenceWidth = 768
+} else if (window.innerWidth <= 1024) {
+  var referenceWidth = 512
+} else {
+  var referenceWidth = 900
+}
 const w = Math.min(window.innerWidth, referenceWidth)
-const hAddition = 0 ? w >= 600 : 200 
-const widthRatio = w / referenceWidth
 
-const maxNrCircles = 1000 ? w >= 600 : 200
+const hAddition = w >= 600 ? 0 : 200
+const widthRatio = w / 900
+
+const maxNrCircles = w >= 600 ? 1000 : 200
 const maxCircleSize = 50 * widthRatio
 const circleOpacity = 0.6
 const specialCirclesSize = 10 * widthRatio
@@ -39,12 +44,11 @@ const maxBarWidth = 400 * widthRatio
 
 var mapTranslations = {
   reset: [0, 0, 1.0],
-  stMoritz: [-800 * widthRatio, (-600 + 4*hAddition) * widthRatio, 4.0],
+  stMoritz: [-800 * widthRatio, (-600 + 4 * hAddition) * widthRatio, 4.0],
   cities: [0, 0, 1.0],
-  firstDams: [-150 * widthRatio, 20 * widthRatio + 2*hAddition, 4.0],
-  grande: [1100 * widthRatio, -800 * widthRatio + 2*hAddition, 4.0],
+  firstDams: [-150 * widthRatio, 20 * widthRatio + 2 * hAddition, 4.0],
+  grande: [1100 * widthRatio, -800 * widthRatio + 2 * hAddition, 4.0]
 }
-
 
 function handleZoom(e) {
   d3.select('svg').attr('transform', e.transform)
@@ -146,18 +150,22 @@ async function initStory() {
   })
 }
 
-function shiftMap(c, addition=[50,50]) {
+function shiftMap(c, addition = [50, 50]) {
   var svg = d3.selectAll('#map')
   svg
     .transition()
     .duration(750)
     .ease(d3.easeSinIn)
-    .call(zoom.transform, d3.zoomIdentity.translate(
-        c[0], c[1]).scale(c[2]).translate(
-            -addition[0] * widthRatio, addition[0] * widthRatio))
+    .call(
+      zoom.transform,
+      d3.zoomIdentity
+        .translate(c[0], c[1])
+        .scale(c[2])
+        .translate(-addition[0] * widthRatio, addition[0] * widthRatio)
+    )
 }
 
-function resetHydro(op=circleOpacity) {
+function resetHydro(op = circleOpacity) {
   d3.selectAll('.hydroCircle').transition().duration(1000).style('opacity', op)
 }
 
@@ -310,7 +318,7 @@ onMounted(async () => {
 watch(selectedMessage, (newId, oldId) => {
   if (newId === 0 && oldId === 1) {
     resetSpecialPoint('stMoritz')
-    shiftMap(mapTranslations.reset, [0,0])
+    shiftMap(mapTranslations.reset, [0, 0])
     resetHydro()
   } else if (newId === 1 && oldId === 0) {
     resetHydro(0.0)
@@ -318,18 +326,18 @@ watch(selectedMessage, (newId, oldId) => {
     drawSpecialPoint('stMoritz')
   } else if (newId === 1 && oldId === 2) {
     resetSpecialPoint('geneva')
-    resetSpecialPoint('zurich') 
+    resetSpecialPoint('zurich')
     shiftMap(mapTranslations.stMoritz)
     drawSpecialPoint('stMoritz')
   } else if (newId === 2 && oldId === 1) {
     resetSpecialPoint('stMoritz')
-    shiftMap(mapTranslations.cities, [0,0])
+    shiftMap(mapTranslations.cities, [0, 0])
     drawSpecialPoint('geneva')
     drawSpecialPoint('zurich')
   } else if (newId === 2 && oldId === 3) {
     resetSpecialPoint('sihlsee')
     resetSpecialPoint('innerthal')
-    shiftMap(mapTranslations.cities, [0,0])
+    shiftMap(mapTranslations.cities, [0, 0])
     drawSpecialPoint('geneva')
     drawSpecialPoint('zurich')
   } else if (newId === 3 && oldId === 2) {
@@ -348,13 +356,13 @@ watch(selectedMessage, (newId, oldId) => {
     resetSpecialPoint('innerthal')
     shiftMap(mapTranslations.grande)
     drawSpecialPoint('grande')
-  } else if (newId === 4 && oldId === 5) { 
+  } else if (newId === 4 && oldId === 5) {
     resetHydro(0.0)
     shiftMap(mapTranslations.grande)
     drawSpecialPoint('grande')
   } else if (newId === 5 && oldId === 4) {
     resetSpecialPoint('grande')
-    shiftMap(mapTranslations.reset, [0,0])
+    shiftMap(mapTranslations.reset, [0, 0])
     resetHydro()
   } else if (newId === 5 && oldId === 6) {
     reorderToMap()
@@ -365,17 +373,19 @@ watch(selectedMessage, (newId, oldId) => {
 </script>
 
 <template>
-  <div class="overflow-visible" id="mapContainer"></div>
+  <div id="mapContainer"></div>
 </template>
 
 <style scoped>
-.continent {
-  fill: #ecf3f4;
-  stroke: #434141;
-  stroke-width: 0.01;
-  border-radius: 25px;
-}
 .svg-content {
   background-color: #ecf3f4;
+}
+
+#mapContainer {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none;
+}
+#mapContainer::-webkit-scrollbar {
+  display: none;
 }
 </style>
