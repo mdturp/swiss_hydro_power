@@ -320,7 +320,9 @@ watch(selectedMessage, (newId, oldId) => {
     resetSpecialPoint('stMoritz')
     shiftMap(mapTranslations.reset, [0, 0])
     resetHydro()
+    moveAndDrawMap()
   } else if (newId === 1 && oldId === 0) {
+    moveAndDrawMap()
     resetHydro(0.0)
     shiftMap(mapTranslations.stMoritz)
     drawSpecialPoint('stMoritz')
@@ -337,6 +339,8 @@ watch(selectedMessage, (newId, oldId) => {
   } else if (newId === 2 && oldId === 3) {
     resetSpecialPoint('sihlsee')
     resetSpecialPoint('innerthal')
+    moveAndDrawMap()
+    resetHydro(0.0)
     shiftMap(mapTranslations.cities, [0, 0])
     drawSpecialPoint('geneva')
     drawSpecialPoint('zurich')
@@ -348,6 +352,8 @@ watch(selectedMessage, (newId, oldId) => {
     drawSpecialPoint('innerthal')
   } else if (newId === 3 && oldId === 4) {
     resetSpecialPoint('grande')
+    moveAndDrawMap()
+    resetHydro(0.0)
     shiftMap(mapTranslations.firstDams)
     drawSpecialPoint('sihlsee')
     drawSpecialPoint('innerthal')
@@ -357,6 +363,7 @@ watch(selectedMessage, (newId, oldId) => {
     shiftMap(mapTranslations.grande)
     drawSpecialPoint('grande')
   } else if (newId === 4 && oldId === 5) {
+    moveAndDrawMap()
     resetHydro(0.0)
     shiftMap(mapTranslations.grande)
     drawSpecialPoint('grande')
@@ -367,6 +374,8 @@ watch(selectedMessage, (newId, oldId) => {
   } else if (newId === 5 && oldId === 6) {
     reorderToMap()
   } else if (newId === 6) {
+    resetSpecialPoint('grande')
+    shiftMap(mapTranslations.reset, [0, 0])
     reorderToBarChart()
   }
 })
