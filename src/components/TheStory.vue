@@ -25,7 +25,7 @@ onMounted(async () => {
     trigger: '#message-1',
     start: 'top 500px',
     end: 'bottom 750px',
-    markers: { startColor: 'black', endColor: 'black' },
+    // markers: { startColor: 'black', endColor: 'black' }, // uncomment to debug
     scrub: true,
     onEnter: () => transform('onEnter', 1),
     onLeaveBack: () => transform('onLeaveBack', 0)
@@ -34,7 +34,7 @@ onMounted(async () => {
     trigger: '#message-2',
     start: 'top 500px',
     end: 'bottom 750px',
-    markers: { startColor: 'black', endColor: 'black' },
+    // markers: { startColor: 'black', endColor: 'black' }, // uncomment to debug
     scrub: true,
     onEnter: () => transform('onEnter', 2),
     onLeaveBack: () => transform('onLeaveBack', 1)
@@ -43,7 +43,7 @@ onMounted(async () => {
     trigger: '#message-3',
     start: 'top 500px',
     end: 'bottom 750px',
-    markers: { startColor: 'black', endColor: 'black' },
+    // markers: { startColor: 'black', endColor: 'black' }, // uncomment to debug
     scrub: true,
     onEnter: () => transform('onEnter', 3),
     onLeaveBack: () => transform('onLeaveBack', 2)
@@ -53,7 +53,7 @@ onMounted(async () => {
     trigger: '#message-4',
     start: 'top 500px',
     end: 'bottom 750px',
-    markers: { startColor: 'black', endColor: 'black' },
+    // markers: { startColor: 'black', endColor: 'black' }, // uncomment to debug
     scrub: true,
     onEnter: () => transform('onEnter', 4),
     onLeaveBack: () => transform('onLeaveBack', 3)
@@ -63,7 +63,7 @@ onMounted(async () => {
     trigger: '#message-5',
     start: 'top 500px',
     end: 'bottom 750px',
-    markers: { startColor: 'black', endColor: 'black' },
+    // markers: { startColor: 'black', endColor: 'black' }, // uncomment to debug
     scrub: true,
     onEnter: () => transform('onEnter', 5),
     onLeaveBack: () => transform('onLeaveBack', 4)
@@ -73,7 +73,7 @@ onMounted(async () => {
     trigger: '#message-6',
     start: 'top 500px',
     end: 'bottom 750px',
-    markers: { startColor: 'black', endColor: 'black' },
+    // markers: { startColor: 'black', endColor: 'black' }, // uncomment to debug
     scrub: true,
     onEnter: () => transform('onEnter', 6),
     onLeaveBack: () => transform('onLeaveBack', 5)
